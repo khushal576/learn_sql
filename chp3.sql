@@ -1,108 +1,229 @@
----------------------------------------------
--- CHAPTER 3:  Working with Multiple Tables
-----------------------------------------------
+-------------------------------------------------
+-- CHAPTER 3
+-- Working with Multiple Tables
+-------------------------------------------------
 
--- Stacking One Rowset atop Another
--- use UNION ALL to combine rows from multiple tables:
-select ename as ename_and_dname, deptno
+-- INNER JOIN example
+-- returns rows that have matching keys in both tables
+select e.empno, e.ename, d.dname
+from emp e
+inner join dept d
+on e.deptno = d.deptno;
+
+-------------------------------------------------
+
+-- LEFT JOIN
+-- returns all rows from left table even if no match in right table
+select e.ename, d.dname
+from emp e
+left join dept d
+on e.deptno = d.deptno;
+
+-------------------------------------------------
+
+-- RIGHT JOIN
+-- returns all rows from right table
+select e.ename, d.dname
+from emp e
+right join dept d
+on e.deptno = d.deptno;
+
+-------------------------------------------------
+
+-- FULL OUTER JOIN
+-- returns all rows from both tables
+select e.ename, d.dname
+from emp e
+full join dept d
+on e.deptno = d.deptno;
+
+-------------------------------------------------
+
+-- SELF JOIN
+-- used when a table references itself
+-- Example: employee and their manager
+
+select e.ename as employee,
+       m.ename as manager
+from emp e
+left join emp m
+on e.mgr = m.empno;
+
+-------------------------------------------------
+
+-- SELF JOIN example to find employees working in same department
+select e1.ename as emp1,
+       e2.ename as emp2,
+       e1.deptno
+from emp e1
+join emp e2
+on e1.deptno = e2.deptno
+and e1.empno < e2.empno;
+
+-------------------------------------------------
+
+-- CROSS JOIN
+-- produces Cartesian product (all combinations)
+
+select e.ename, d.dname
+from emp e
+cross join dept d;
+
+-------------------------------------------------
+
+-- Set Operator: UNION
+-- removes duplicates automatically
+
+select deptno
 from emp
-where deptno = 10
-union all
-select '----------', null
-from t1
-union all
-select dname, deptno
+union
+select deptno
 from dept;
 
--- Combining Related Rows
--- joins
+-------------------------------------------------
 
-select e.ename, d.loc
-from emp e, dept d
-where e.deptno = d.deptno
-and e.deptno = 10;
--- another way to write above query
-SELECT e.ename, d.loc
-FROM emp e
-INNER JOIN dept d
-ON e.deptno = d.deptno
-WHERE e.deptno = 10;
+-- Set Operator: INTERSECT
+-- returns common rows between two queries
 
--- Finding Rows in Common Between Two Tables
--- return only row which is in both view2 and emp
-select empno,ename,job,sal,deptno
+select deptno
 from emp
-where (ename,job,sal) in (
-     select ename,job,sal from emp
-     intersect
-     select ename,job,sal from V2);
+intersect
+select deptno
+from dept;
 
--- Retrieving Values from One Table That Do Not Exist in Another
--- fetch deptno which is not in emp table
-select distinct deptno
+-------------------------------------------------
+
+-- Set Operator: EXCEPT
+-- returns rows from first query not in second
+
+select deptno
 from dept
-where deptno not in (select deptno from emp);
+except
+select deptno
+from emp;
 
--- Retrieving Rows from One Table That Do Not Correspond to Rows in Another
--- Returns departments that have no matching employees (i.e., unmatched rows from dept using a LEFT JOIN).
-select d.*
-from dept d left outer join emp e
-on (d.deptno = e.deptno)
-where e.deptno is null;
+-------------------------------------------------
 
--- Adding Joins to a Query Without Interfering with Other Joins
--- in second we have used left join becuase we dont want to lost any other row.
-select e.ename, d.loc, eb.received
-from emp e 
-join dept d
-on (e.deptno=d.deptno)
-left join emp_bonus eb
-on (e.empno=eb.empno)
-order by 2;
+-- EXISTS example
+-- return departments that have employees
 
--- Determining Whether Two Tables Have the Same Data
--- Find rows that exist in V but not in emp, and rows that exist in emp but not in V.
--- emp EXCEPT V inds rows present in emp but not in V.
-(
-    SELECT empno, ename, job, mgr, hiredate, sal, comm, deptno,
-           COUNT(*) AS cnt
-    FROM v3
-    GROUP BY empno, ename, job, mgr, hiredate, sal, comm, deptno
-    EXCEPT
-    SELECT empno, ename, job, mgr, hiredate, sal, comm, deptno,
-           COUNT(*) AS cnt
-    FROM emp
-    GROUP BY empno, ename, job, mgr, hiredate, sal, comm, deptno
-)
-UNION ALL
-(
-    SELECT empno, ename, job, mgr, hiredate, sal, comm, deptno,
-           COUNT(*) AS cnt
-    FROM emp
-    GROUP BY empno, ename, job, mgr, hiredate, sal, comm, deptno
-    EXCEPT
-    SELECT empno, ename, job, mgr, hiredate, sal, comm, deptno,
-           COUNT(*) AS cnt
-    FROM v3
-    GROUP BY empno, ename, job, mgr, hiredate, sal, comm, deptno
+select *
+from dept d
+where exists (
+    select 1
+    from emp e
+    where e.deptno = d.deptno
 );
 
--- Identifying and Avoiding Cartesian Products
--- Cartesian Products it gives all posible combination not specific rows
-select e.ename, d.loc
- from emp e, dept d
- where e.deptno = 10;
+-------------------------------------------------
 
--- use join
-select e.ename, d.loc
-from emp e, dept d
-where e.deptno = 10
-and d.deptno = e.deptno;
+-- NOT EXISTS example
+-- return departments without employees
 
--- Using NULLs in Operations and Comparisons
--- if we dont do null will never come in result.
-select ename,comm
-from emp
-where coalesce(comm,0) < ( select comm
-from emp
-where ename = 'WARD' );
+select *
+from dept d
+where not exists (
+    select 1
+    from emp e
+    where e.deptno = d.deptno
+);
+
+-------------------------------------------------
+
+-- Using EXISTS instead of IN (often more efficient)
+
+select *
+from emp e
+where exists (
+    select 1
+    from dept d
+    where d.deptno = e.deptno
+);
+
+-------------------------------------------------
+
+-- Finding employees working in departments located in NEW YORK
+
+select e.ename, d.loc
+from emp e
+join dept d
+on e.deptno = d.deptno
+where d.loc = 'NEW YORK';
+
+-------------------------------------------------
+
+-- Join with filtering on both tables
+
+select e.ename, d.dname, e.sal
+from emp e
+join dept d
+on e.deptno = d.deptno
+where e.sal > 2000
+and d.loc = 'CHICAGO';
+
+-------------------------------------------------
+
+-- Join three tables example
+
+select e.ename,
+       d.dname,
+       eb.type
+from emp e
+join dept d
+on e.deptno = d.deptno
+left join emp_bonus eb
+on e.empno = eb.empno;
+
+-------------------------------------------------
+
+-- Finding employees who do not have bonuses
+
+select e.*
+from emp e
+left join emp_bonus eb
+on e.empno = eb.empno
+where eb.empno is null;
+
+-------------------------------------------------
+
+-- Counting employees per department
+
+select d.deptno,
+       d.dname,
+       count(e.empno) as employee_count
+from dept d
+left join emp e
+on d.deptno = e.deptno
+group by d.deptno, d.dname;
+
+-------------------------------------------------
+
+-- Join using USING clause
+-- shorthand when column names are identical
+
+select e.ename, d.dname
+from emp e
+join dept d
+using (deptno);
+
+-------------------------------------------------
+
+-- Best Practice Notes
+-------------------------------------------------
+
+-- 1. Prefer explicit JOIN syntax over comma joins.
+--    It improves readability and avoids accidental Cartesian products.
+
+-- 2. Always specify join condition clearly.
+
+-- 3. EXISTS is usually better than IN for correlated subqueries
+--    when working with large datasets.
+
+-- 4. LEFT JOIN + IS NULL is a common pattern
+--    to find unmatched rows.
+
+-- 5. Avoid SELECT * in multi-table joins.
+--    Explicit column selection prevents ambiguity.
+
+-- 6. CROSS JOIN can produce extremely large result sets.
+--    Use carefully.
