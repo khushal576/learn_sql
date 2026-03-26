@@ -2,6 +2,13 @@
 -- CHAPTER 5
 -- Metadata Queries
 -------------------------------------------------
+-- This chapter shows how to query the database itself — its structure,
+-- constraints, indexes, sizes, and activity statistics.
+-- Two main sources: information_schema (ANSI standard, portable) and
+-- pg_catalog (PostgreSQL-specific, more detailed).
+-- Metadata queries are essential for documentation, auditing, and automation.
+
+-------------------------------------------------
 
 -- List all schemas in database
 select schema_name
@@ -193,23 +200,62 @@ where n.nspname = 'public';
 
 -------------------------------------------------
 
+-- List user-defined functions using information_schema (portable)
+-- information_schema.routines works across PostgreSQL, MySQL, SQL Server
+
+select routine_name,
+       routine_type,
+       data_type as return_type
+from information_schema.routines
+where routine_schema = 'public'
+order by routine_type, routine_name;
+
+-------------------------------------------------
+
+-- Quick index summary using pg_indexes (simpler than pg_stat_user_indexes)
+
+select tablename,
+       indexname,
+       indexdef
+from pg_indexes
+where schemaname = 'public'
+order by tablename, indexname;
+
+-------------------------------------------------
+
+-- Check table bloat / live vs dead tuples
+-- Useful for deciding when to run VACUUM
+
+select relname as table_name,
+       n_live_tup,
+       n_dead_tup,
+       round(100.0 * n_dead_tup / nullif(n_live_tup + n_dead_tup, 0), 1) as dead_pct
+from pg_stat_user_tables
+order by dead_pct desc nulls last;
+
+-------------------------------------------------
+
 -- Best Practice Notes
 -------------------------------------------------
 
--- 1. information_schema views are ANSI standard
---    and portable across databases.
+-- 1. information_schema views are ANSI standard and portable across databases.
+--    Prefer them when writing cross-database tools or migrations.
 
--- 2. pg_catalog contains PostgreSQL internal metadata
---    and provides deeper system information.
+-- 2. pg_catalog contains PostgreSQL internal metadata and provides
+--    deeper system information (sizes, statistics, index details).
 
--- 3. Use pg_stat_* views to analyze database activity
---    and performance statistics.
+-- 3. Use pg_stat_* views to analyze database activity and performance.
 
--- 4. Metadata queries are extremely useful for:
+-- 4. Metadata queries are essential for:
 --      - database documentation
---      - automation scripts
---      - migration tools
---      - schema auditing
+--      - automation and migration scripts
+--      - schema auditing and compliance
 
 -- 5. "Using SQL to generate SQL" is a powerful technique
 --    for batch operations across many tables.
+
+-- 6. information_schema.routines is the portable way to list functions.
+--    Use pg_proc for PostgreSQL-specific details (argument types, source code).
+
+-- 7. Monitor n_dead_tup in pg_stat_user_tables to identify tables
+--    that need VACUUM to reclaim bloated storage.
