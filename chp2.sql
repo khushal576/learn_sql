@@ -2,6 +2,12 @@
 -- CHAPTER 2
 -- Sorting Query Results
 -------------------------------------------------
+-- This chapter covers all ways to control the order of query results:
+-- ascending/descending, multi-column sorts, expression-based sorts,
+-- custom sort priorities using CASE, NULL handling with NULLS FIRST/LAST,
+-- locale-aware sorting with COLLATE, and Top-N patterns with LIMIT/OFFSET.
+
+-------------------------------------------------
 
 -- Default sort order is ASC (ascending)
 select ename, sal
@@ -79,8 +85,11 @@ order by substr(ename,1,3);
 
 -- Sorting numeric values stored as text
 -- Example scenario: table contains text values '1','2','10'
+-- Without cast: '10' sorts before '2' (lexicographic order)
+-- With cast: 1, 2, 10 (correct numeric order)
+
 select data
-from V
+from (values ('10'), ('2'), ('1'), ('100')) as t(data)
 order by cast(data as integer);
 
 -- Useful when numeric values are stored as VARCHAR
@@ -174,6 +183,28 @@ order by case
 
 -------------------------------------------------
 
+-- Mixed ASC / DESC on multiple columns
+-- Sort by department ascending, then salary descending within each dept
+
+select ename, deptno, sal
+from emp
+order by deptno asc, sal desc;
+
+-------------------------------------------------
+
+-- COLLATE for locale-aware sorting
+-- Useful when sorting accented or locale-specific characters correctly.
+-- 'und-x-icu' is the Unicode collation in PostgreSQL 14+.
+
+select ename
+from emp
+order by ename collate "C";
+
+-- 'C' collation sorts by raw byte value (fastest, no locale rules).
+-- Use "en-US-x-icu" or "pg_catalog.default" for locale-specific ordering.
+
+-------------------------------------------------
+
 -- Best Practice Notes
 -------------------------------------------------
 
@@ -189,4 +220,9 @@ order by case
 -- 5. Sorting using expressions prevents index usage in many cases.
 --    Example:
 --        ORDER BY lower(name)
---    may require full sort instead of index scan.
+--    may require a full sort instead of an index scan.
+--    Create a functional index to fix this: CREATE INDEX ON emp (lower(ename)).
+
+-- 6. COLLATE controls locale and character ordering rules.
+--    Default collation is set at database creation time.
+--    Explicitly specify COLLATE when results must be locale-independent.

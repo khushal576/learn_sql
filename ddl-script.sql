@@ -66,6 +66,12 @@ INSERT INTO DEPT VALUES (20, 'RESEARCH',   'DALLAS');
 INSERT INTO DEPT VALUES (30, 'SALES',      'CHICAGO');
 INSERT INTO DEPT VALUES (40, 'OPERATIONS', 'BOSTON');
 
+INSERT INTO DEPT_EAST VALUES (10, 'ACCOUNTING', 'NEW YORK');
+INSERT INTO DEPT_EAST VALUES (20, 'RESEARCH',   'DALLAS');
+
+-- Sequence used in chapter 4 for auto-increment inserts
+CREATE SEQUENCE emp_seq START WITH 8000 INCREMENT BY 1;
+
 CREATE TABLE T1 (ID INTEGER);
 
 INSERT INTO T1 VALUES (1);
@@ -200,7 +206,7 @@ INSERT INTO emp_bonus (empno, received, type) VALUES
 create table D (id integer default 0);
 create table D1 (id integer default 0, foo VARCHAR(10));
 
-CREATE TABLE sal (
+CREATE TABLE new_sal (
     empno INTEGER,
     ename TEXT,
     sal NUMERIC,
@@ -252,3 +258,63 @@ select * from emp where ename = 'WARD';
 create view new_emps as
 select empno, ename, job
  from emp;
+
+ create view V4 as
+select ename as data
+ from emp
+ where deptno=10
+ union all
+select ename||', $'|| cast(sal as char(4)) ||'.00' as data
+ from emp
+ where deptno=20
+ union all
+select ename|| cast(deptno as char(4)) as data
+ from emp
+ where deptno=30;
+
+ create view V5 as
+select e.ename ||' '||
+ cast(e.empno as char(4))||' '||
+ d.dname as data
+ from emp e, dept d
+ where e.deptno=d.deptno;
+
+ create view V6 as
+select replace(mixed,' ','') as mixed
+ from (
+select substr(ename,1,2)||
+ cast(deptno as char(4))||
+ substr(ename,3,2) as mixed
+ from emp
+ where deptno = 10
+ union all
+select cast(empno as char(4)) as mixed
+ from emp
+ where deptno = 20
+ union all
+select ename as mixed
+ from emp
+ where deptno = 30
+ ) x;
+
+create view V7 as
+select 'mo,larry,curly' as name
+ from t1
+ union all
+select 'tina,gina,jaunita,regina,leena' as name
+ from t1;
+
+ -- Create table
+CREATE TABLE sales (
+    DATE1 DATE,
+    SALES INT
+);
+
+-- Insert data
+INSERT INTO sales (DATE1, SALES) VALUES
+('2020-01-01', 647),
+('2020-01-02', 561),
+('2020-01-03', 741),
+('2020-01-04', 978),
+('2020-01-05', 1062),
+('2020-01-06', 1072);

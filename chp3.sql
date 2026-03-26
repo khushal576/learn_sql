@@ -2,6 +2,13 @@
 -- CHAPTER 3
 -- Working with Multiple Tables
 -------------------------------------------------
+-- This chapter covers combining data from multiple tables:
+-- INNER, LEFT, RIGHT, FULL OUTER, SELF, and CROSS JOINs,
+-- set operators (UNION, INTERSECT, EXCEPT), EXISTS/NOT EXISTS,
+-- the USING clause shorthand, LATERAL joins for correlated logic,
+-- and an introduction to CTEs (covered in depth in Chapter 9).
+
+-------------------------------------------------
 
 -- INNER JOIN example
 -- returns rows that have matching keys in both tables
@@ -208,22 +215,111 @@ using (deptno);
 
 -------------------------------------------------
 
+-------------------------------------------------
+
+-- NATURAL JOIN
+-- Automatically joins on all columns that share the same name.
+-- Caution: fragile — adding a column to either table can silently break the query.
+
+select e.ename, d.dname
+from emp e
+natural join dept d;
+
+-- Best practice: avoid NATURAL JOIN in production. Use explicit ON or USING instead.
+
+-------------------------------------------------
+
+-- LATERAL join
+-- Allows a subquery on the right side to reference columns from the left side.
+-- Equivalent to a correlated subquery but returns multiple rows/columns.
+
+select e.ename,
+       e.sal,
+       top_dept.dname,
+       top_dept.avg_sal
+from emp e
+cross join lateral (
+    select d.dname,
+           avg(e2.sal) as avg_sal
+    from dept d
+    join emp e2 on e2.deptno = d.deptno
+    where d.deptno = e.deptno
+    group by d.dname
+) top_dept;
+
+-- LATERAL lets the inner subquery see e.deptno from the outer FROM clause.
+-- Very powerful for per-row computations and top-N per group patterns.
+
+-------------------------------------------------
+
+-- CTE (Common Table Expression) using WITH clause
+-- One of the most widely used modern SQL features.
+-- Makes complex queries readable by naming intermediate results.
+
+with dept_headcount as (
+    select deptno,
+           count(*) as headcount
+    from emp
+    group by deptno
+),
+high_headcount as (
+    select deptno
+    from dept_headcount
+    where headcount >= 3
+)
+select e.ename, d.dname, e.sal
+from emp e
+join dept d on e.deptno = d.deptno
+where e.deptno in (select deptno from high_headcount)
+order by d.dname, e.sal desc;
+
+-- CTEs can reference each other in sequence.
+-- Each named block (dept_headcount, high_headcount) is like a temp view.
+
+-------------------------------------------------
+
+-- Recursive CTE
+-- Useful for hierarchical data like org charts.
+
+with recursive emp_hierarchy as (
+    -- base case: top of org (no manager)
+    select empno, ename, mgr, 1 as level
+    from emp
+    where mgr is null
+
+    union all
+
+    -- recursive step: join employees to their manager
+    select e.empno, e.ename, e.mgr, h.level + 1
+    from emp e
+    join emp_hierarchy h on e.mgr = h.empno
+)
+select level, ename
+from emp_hierarchy
+order by level, ename;
+
+-------------------------------------------------
+
 -- Best Practice Notes
 -------------------------------------------------
 
 -- 1. Prefer explicit JOIN syntax over comma joins.
 --    It improves readability and avoids accidental Cartesian products.
 
--- 2. Always specify join condition clearly.
+-- 2. Always specify join conditions clearly (ON or USING).
 
 -- 3. EXISTS is usually better than IN for correlated subqueries
 --    when working with large datasets.
 
--- 4. LEFT JOIN + IS NULL is a common pattern
---    to find unmatched rows.
+-- 4. LEFT JOIN + IS NULL is a common pattern to find unmatched rows.
 
 -- 5. Avoid SELECT * in multi-table joins.
 --    Explicit column selection prevents ambiguity.
 
--- 6. CROSS JOIN can produce extremely large result sets.
---    Use carefully.
+-- 6. CROSS JOIN can produce extremely large result sets — use carefully.
+
+-- 7. Avoid NATURAL JOIN in production code; column additions can silently
+--    change join behaviour without any syntax error.
+
+-- 8. Use LATERAL when you need per-row correlated logic that returns
+--    multiple columns or rows (more readable than deeply nested subqueries).

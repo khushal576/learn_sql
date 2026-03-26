@@ -1,6 +1,13 @@
 -------------------------------------------------
 -- CHAPTER 1
--- Retrieving Records 
+-- Retrieving Records
+-------------------------------------------------
+-- This chapter covers the fundamentals of querying data:
+-- filtering rows with WHERE, removing duplicates with DISTINCT,
+-- sorting with ORDER BY, pattern matching with LIKE/ILIKE,
+-- handling NULLs, writing expressions, and using CASE logic.
+-- Mastering these is the foundation for all SQL work.
+
 -------------------------------------------------
 
 -- Retrieve rows using comparison operators
@@ -81,6 +88,12 @@ select ename, sal
 from emp
 order by sal desc
 limit 3;
+
+-- ANSI SQL standard equivalent (works in Oracle, SQL Server, DB2):
+-- select ename, sal
+-- from emp
+-- order by sal desc
+-- fetch first 3 rows only;
 
 -- Best practice:
 -- Always combine LIMIT with ORDER BY when selecting top rows
@@ -234,6 +247,37 @@ order by random();
 
 -------------------------------------------------
 
+-- FETCH FIRST (ANSI SQL standard, portable alternative to LIMIT)
+-- Works in PostgreSQL, Oracle, SQL Server 2012+, DB2
+
+select ename, sal
+from emp
+order by sal desc
+fetch first 3 rows only;
+
+-- With OFFSET for pagination (skip first 5, take next 3)
+select ename, sal
+from emp
+order by sal desc
+offset 5 rows fetch next 3 rows only;
+
+-------------------------------------------------
+
+-- GREATEST and LEAST — pick the max/min across multiple values in a row
+-- Useful for comparing multiple columns on the same row
+
+select ename,
+       sal,
+       coalesce(comm, 0) as comm,
+       greatest(sal, coalesce(comm, 0)) as higher_value,
+       least(sal, coalesce(comm, 0))    as lower_value
+from emp;
+
+-- Unlike MAX/MIN (which aggregate across rows),
+-- GREATEST/LEAST operate column-to-column within a single row.
+
+-------------------------------------------------
+
 -- Useful debugging query while learning
 -- Quickly check number of rows in table
 select count(*) from emp;
@@ -243,13 +287,19 @@ select count(*) from emp;
 -- Best Practice Notes
 -------------------------------------------------
 
--- 1. Avoid SELECT * in production queries
+-- 1. Avoid SELECT * in production queries.
 --    Explicit column selection improves performance and readability.
 
 -- 2. Always use parentheses in complex WHERE conditions.
 
--- 3. Use ORDER BY when using LIMIT to make results deterministic.
+-- 3. Use ORDER BY when using LIMIT/FETCH FIRST to make results deterministic.
 
 -- 4. Use COALESCE when dealing with nullable columns.
 
 -- 5. Prefer meaningful column aliases when presenting results.
+
+-- 6. FETCH FIRST ... ROWS ONLY is the ANSI standard and portable across databases.
+--    Prefer it over LIMIT for production code targeting multiple database vendors.
+
+-- 7. GREATEST(a, b, c) and LEAST(a, b, c) compare across columns in one row.
+--    They are different from MAX/MIN which aggregate across many rows.
