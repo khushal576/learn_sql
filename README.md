@@ -128,6 +128,20 @@ Start here if you want to **understand how databases work deeply**.
 | [29](database/29_performance_tuning.md) | Performance Tuning — shared_buffers, work_mem, PGTune, checkpoints |
 | [30](database/30_production_checklist.md) | Database in Production — zero-downtime migrations, CI/CD, full checklist |
 
+### Module 5 — Senior DBA (Advanced)
+| Chapter | Topic |
+|---------|-------|
+| [31](database/31_query_planner_internals.md) | Query Planner Internals — pg_stats, extended statistics, cost model, JIT, pg_hint_plan |
+| [32](database/32_logical_replication_deep_dive.md) | Logical Replication Deep Dive — CDC, Debezium/Kafka, slot hazards, zero-downtime upgrades |
+| [33](database/33_advanced_query_patterns.md) | Advanced Query Patterns — window frames, recursive CTEs, LATERAL, MERGE, DISTINCT ON |
+| [34](database/34_connection_management_scale.md) | Connection Management at Scale — PgBouncer HA, DISCARD ALL hazards, timeout hierarchy |
+| [35](database/35_observability_engineering.md) | Observability Engineering — wait events, pg_wait_sampling, auto_explain, SLOs, OpenTelemetry |
+| [36](database/36_compliance_advanced_security.md) | Compliance & Advanced Security — RBAC, dynamic masking, envelope encryption, GDPR, SOC 2 |
+| [37](database/37_extension_ecosystem.md) | Extension Ecosystem — TimescaleDB, pgvector (HNSW/IVFFlat), PostGIS, pg_cron, pg_partman |
+| [38](database/38_capacity_planning_cloud.md) | Capacity Planning & Cloud — RDS vs Aurora internals, TCO, IOPS sizing, rightsizing |
+| [39](database/39_operational_runbooks.md) | Operational Runbooks — crash, replication lag, disk full, XID wraparound, lock storm, corruption |
+| [40](database/40_postgres_for_olap.md) | PostgreSQL for OLAP — parallel query, columnar storage (Hydra), DuckDB, FDWs, hybrid workloads |
+
 ---
 
 ## Prerequisites

@@ -50,6 +50,20 @@ A structured course from absolute basics to production-grade database engineerin
 | [29_performance_tuning.md](29_performance_tuning.md) | Performance Tuning — shared_buffers, work_mem, pgBadger, config |
 | [30_production_checklist.md](30_production_checklist.md) | Database in Production — deployment checklist, schema migrations, CI/CD |
 
+## Module 5: Senior DBA (Advanced)
+| Chapter | Topic |
+|---------|-------|
+| [31_query_planner_internals.md](31_query_planner_internals.md) | Query Planner Internals — pg_stats, extended statistics, cost model, JIT, pg_hint_plan |
+| [32_logical_replication_deep_dive.md](32_logical_replication_deep_dive.md) | Logical Replication Deep Dive — CDC, Debezium, slot hazards, zero-downtime upgrades |
+| [33_advanced_query_patterns.md](33_advanced_query_patterns.md) | Advanced Query Patterns — window frames, recursive CTEs, LATERAL, MERGE, DISTINCT ON |
+| [34_connection_management_scale.md](34_connection_management_scale.md) | Connection Management at Scale — PgBouncer HA, DISCARD ALL hazards, timeout hierarchy |
+| [35_observability_engineering.md](35_observability_engineering.md) | Observability Engineering — wait events, auto_explain, SLOs, OpenTelemetry |
+| [36_compliance_advanced_security.md](36_compliance_advanced_security.md) | Compliance & Advanced Security — RBAC, masking, envelope encryption, GDPR, SOC 2 |
+| [37_extension_ecosystem.md](37_extension_ecosystem.md) | Extension Ecosystem — TimescaleDB, pgvector, PostGIS, pg_cron, pg_partman |
+| [38_capacity_planning_cloud.md](38_capacity_planning_cloud.md) | Capacity Planning & Cloud — RDS vs Aurora, TCO, IOPS, rightsizing |
+| [39_operational_runbooks.md](39_operational_runbooks.md) | Operational Runbooks — crash, replication lag, disk full, XID wraparound, lock storm |
+| [40_postgres_for_olap.md](40_postgres_for_olap.md) | PostgreSQL for OLAP — parallel query, columnar storage, DuckDB, FDWs, hybrid workloads |
+
 ---
 
 > Start with Chapter 1 and follow in order. Each chapter builds on the previous one.
